@@ -1,4 +1,3 @@
-// store/canvas-store.ts
 import { create } from 'zustand'
 
 interface CanvasState {
@@ -6,6 +5,8 @@ interface CanvasState {
   activeObject: any | null
   zoom: number
   aspectRatio: '16:9' | '9:16'
+  history: string[]
+  historyIndex: number
   
   // Actions
   initCanvas: (canvas: any) => void
@@ -15,6 +16,9 @@ interface CanvasState {
   addText: (text: string) => void
   addImage: (url: string) => void
   exportCanvas: (format: 'png' | 'jpg') => Promise<string>
+  undo: () => void
+  redo: () => void
+  saveToHistory: () => void
 }
 
 export const useCanvasStore = create<CanvasState>((set, get) => ({
@@ -22,8 +26,13 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   activeObject: null,
   zoom: 1,
   aspectRatio: '16:9',
+  history: [],
+  historyIndex: -1,
 
-  initCanvas: (canvas) => set({ canvas }),
+  initCanvas: (canvas) => {
+    set({ canvas })
+    get().saveToHistory()
+  },
 
   setActiveObject: (obj) => set({ activeObject: obj }),
 
@@ -43,6 +52,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       
       canvas.setDimensions({ width, height })
       set({ aspectRatio: ratio })
+      get().saveToHistory()
     }
   },
 
@@ -64,6 +74,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     canvas.add(textObj)
     canvas.setActiveObject(textObj)
     canvas.renderAll()
+    get().saveToHistory()
   },
 
   addImage: async (url: string) => {
@@ -78,6 +89,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       canvas.add(img)
       canvas.setActiveObject(img)
       canvas.renderAll()
+      get().saveToHistory()
     })
   },
 
@@ -91,6 +103,48 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
         quality: 1,
       })
       resolve(dataUrl)
+    })
+  },
+
+  undo: () => {
+    const { canvas, history, historyIndex } = get()
+    if (!canvas || historyIndex <= 0) return
+
+    const newIndex = historyIndex - 1
+    const fabricModule = require('fabric')
+    const fabric = fabricModule.fabric
+    
+    canvas.loadFromJSON(history[newIndex], () => {
+      canvas.renderAll()
+      set({ historyIndex: newIndex })
+    })
+  },
+
+  redo: () => {
+    const { canvas, history, historyIndex } = get()
+    if (!canvas || historyIndex >= history.length - 1) return
+
+    const newIndex = historyIndex + 1
+    const fabricModule = require('fabric')
+    const fabric = fabricModule.fabric
+    
+    canvas.loadFromJSON(history[newIndex], () => {
+      canvas.renderAll()
+      set({ historyIndex: newIndex })
+    })
+  },
+
+  saveToHistory: () => {
+    const { canvas, history, historyIndex } = get()
+    if (!canvas) return
+
+    const json = JSON.stringify(canvas.toJSON())
+    const newHistory = history.slice(0, historyIndex + 1)
+    newHistory.push(json)
+    
+    set({ 
+      history: newHistory,
+      historyIndex: newHistory.length - 1 
     })
   },
 }))
