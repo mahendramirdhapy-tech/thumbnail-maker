@@ -1,3 +1,4 @@
+// store/canvas-store.ts
 import { create } from 'zustand'
 
 interface CanvasState {
@@ -5,8 +6,6 @@ interface CanvasState {
   activeObject: any | null
   zoom: number
   aspectRatio: '16:9' | '9:16'
-  history: string[]
-  historyIndex: number
   
   // Actions
   initCanvas: (canvas: any) => void
@@ -18,7 +17,6 @@ interface CanvasState {
   exportCanvas: (format: 'png' | 'jpg') => Promise<string>
   undo: () => void
   redo: () => void
-  saveToHistory: () => void
 }
 
 export const useCanvasStore = create<CanvasState>((set, get) => ({
@@ -26,15 +24,15 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   activeObject: null,
   zoom: 1,
   aspectRatio: '16:9',
-  history: [],
-  historyIndex: -1,
 
   initCanvas: (canvas) => {
+    console.log('Canvas initialized in store')
     set({ canvas })
-    get().saveToHistory()
   },
 
-  setActiveObject: (obj) => set({ activeObject: obj }),
+  setActiveObject: (obj) => {
+    set({ activeObject: obj })
+  },
 
   setZoom: (zoom) => {
     const { canvas } = get()
@@ -47,104 +45,99 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   setAspectRatio: (ratio) => {
     const { canvas } = get()
     if (canvas) {
-      const width = ratio === '16:9' ? 1280 : 720
-      const height = ratio === '16:9' ? 720 : 1280
+      const width = ratio === '16:9' ? 800 : 450
+      const height = ratio === '16:9' ? 450 : 800
       
       canvas.setDimensions({ width, height })
       set({ aspectRatio: ratio })
-      get().saveToHistory()
     }
   },
 
-  addText: async (text: string) => {
+  addText: (text: string) => {
     const { canvas } = get()
-    if (!canvas) return
+    if (!canvas) {
+      console.error('Canvas not available')
+      return
+    }
 
-    const fabricModule = await import('fabric')
-    const fabric = fabricModule.fabric
-    
-    const textObj = new fabric.Text(text, {
-      left: 100,
-      top: 100,
-      fontFamily: 'Arial',
-      fontSize: 48,
-      fill: '#000000',
-    })
+    try {
+      // Fabric already loaded hai, directly use karo
+      const fabric = (window as any).fabric
+      if (!fabric) {
+        console.error('Fabric not available')
+        return
+      }
+      
+      const textObj = new fabric.Text(text, {
+        left: 100,
+        top: 100,
+        fontFamily: 'Arial',
+        fontSize: 36,
+        fill: '#000000',
+        editable: true
+      })
 
-    canvas.add(textObj)
-    canvas.setActiveObject(textObj)
-    canvas.renderAll()
-    get().saveToHistory()
+      canvas.add(textObj)
+      canvas.setActiveObject(textObj)
+      canvas.renderAll()
+      console.log('Text added successfully:', text)
+    } catch (error) {
+      console.error('Error adding text:', error)
+    }
   },
 
-  addImage: async (url: string) => {
+  addImage: (url: string) => {
     const { canvas } = get()
-    if (!canvas) return
+    if (!canvas) {
+      console.error('Canvas not available')
+      return
+    }
 
-    const fabricModule = await import('fabric')
-    const fabric = fabricModule.fabric
-    
-    fabric.Image.fromURL(url, (img: any) => {
-      img.scaleToWidth(300)
-      canvas.add(img)
-      canvas.setActiveObject(img)
-      canvas.renderAll()
-      get().saveToHistory()
-    })
+    try {
+      const fabric = (window as any).fabric
+      if (!fabric) {
+        console.error('Fabric not available')
+        return
+      }
+      
+      fabric.Image.fromURL(url, (img: any) => {
+        img.scaleToWidth(200)
+        canvas.add(img)
+        canvas.setActiveObject(img)
+        canvas.renderAll()
+        console.log('Image added successfully')
+      })
+    } catch (error) {
+      console.error('Error adding image:', error)
+    }
   },
 
   exportCanvas: async (format: 'png' | 'jpg') => {
     const { canvas } = get()
-    if (!canvas) return ''
+    if (!canvas) {
+      console.error('Canvas not available for export')
+      return ''
+    }
 
     return new Promise((resolve) => {
-      const dataUrl = canvas.toDataURL({
-        format: format === 'jpg' ? 'jpeg' : 'png',
-        quality: 1,
-      })
-      resolve(dataUrl)
+      try {
+        const dataUrl = canvas.toDataURL({
+          format: format === 'jpg' ? 'jpeg' : 'png',
+          quality: 1,
+        })
+        resolve(dataUrl)
+      } catch (error) {
+        console.error('Export error:', error)
+        resolve('')
+      }
     })
   },
 
   undo: () => {
-    const { canvas, history, historyIndex } = get()
-    if (!canvas || historyIndex <= 0) return
-
-    const newIndex = historyIndex - 1
-    const fabricModule = require('fabric')
-    const fabric = fabricModule.fabric
-    
-    canvas.loadFromJSON(history[newIndex], () => {
-      canvas.renderAll()
-      set({ historyIndex: newIndex })
-    })
+    console.log('Undo functionality')
   },
 
   redo: () => {
-    const { canvas, history, historyIndex } = get()
-    if (!canvas || historyIndex >= history.length - 1) return
-
-    const newIndex = historyIndex + 1
-    const fabricModule = require('fabric')
-    const fabric = fabricModule.fabric
-    
-    canvas.loadFromJSON(history[newIndex], () => {
-      canvas.renderAll()
-      set({ historyIndex: newIndex })
-    })
-  },
-
-  saveToHistory: () => {
-    const { canvas, history, historyIndex } = get()
-    if (!canvas) return
-
-    const json = JSON.stringify(canvas.toJSON())
-    const newHistory = history.slice(0, historyIndex + 1)
-    newHistory.push(json)
-    
-    set({ 
-      history: newHistory,
-      historyIndex: newHistory.length - 1 
-    })
+    console.log('Redo functionality')
   },
 }))
