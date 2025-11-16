@@ -1,7 +1,8 @@
+// components/editor/top-bar.tsx
 'use client'
 
 import { useCanvasStore } from '@/store/canvas-store'
-import { Undo2, Redo2, Save, Download, AspectRatio } from 'lucide-react'
+import { Undo2, Redo2, Save, Download, Square } from 'lucide-react'
 
 export function TopBar() {
   const { 
@@ -42,7 +43,7 @@ export function TopBar() {
       <div className="flex items-center space-x-4">
         {/* Aspect Ratio Toggle */}
         <div className="flex items-center space-x-2">
-          <AspectRatio className="w-4 h-4 text-gray-600" />
+          <Square className="w-4 h-4 text-gray-600" />
           <button
             className={`px-3 py-1 text-sm rounded-lg ${
               aspectRatio === '16:9' 
