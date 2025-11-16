@@ -1,7 +1,8 @@
+// components/editor/left-sidebar.tsx
 'use client'
 
 import { useCanvasStore } from '@/store/canvas-store'
-import { Type, Image, Square, Star, Download, Upload } from 'lucide-react'
+import { Type, Image, Square, Download, Upload } from 'lucide-react'
 
 export function LeftSidebar() {
   const { addText, addImage } = useCanvasStore()
@@ -14,38 +15,34 @@ export function LeftSidebar() {
     }
   }
 
+  const handleAddText = () => {
+    addText('New Text')
+  }
+
+  const handleExport = async (format: 'png' | 'jpg') => {
+    const dataUrl = await useCanvasStore.getState().exportCanvas(format)
+    if (dataUrl) {
+      const link = document.createElement('a')
+      link.download = `thumbnail.${format}`
+      link.href = dataUrl
+      link.click()
+    }
+  }
+
   return (
     <div className="w-80 bg-white border-r border-gray-200 p-4 overflow-y-auto">
       <div className="space-y-6">
-        {/* Templates */}
         <div>
-          <h3 className="font-semibold mb-3 text-gray-900">Templates</h3>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="aspect-video bg-gray-200 rounded-lg flex items-center justify-center text-gray-500 text-sm">
-              YouTube
-            </div>
-            <div className="aspect-[9/16] bg-gray-200 rounded-lg flex items-center justify-center text-gray-500 text-sm">
-              Reels
-            </div>
-          </div>
-        </div>
-
-        {/* Text */}
-        <div>
-          <h3 className="font-semibold mb-3 text-gray-900">Text</h3>
-          <button 
-            className="w-full flex items-center px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
-            onClick={() => addText('Click to Edit Text')}
-          >
-            <Type className="w-4 h-4 mr-2" />
-            Add Text
-          </button>
-        </div>
-
-        {/* Images */}
-        <div>
-          <h3 className="font-semibold mb-3 text-gray-900">Images</h3>
+          <h3 className="font-semibold mb-3 text-gray-900">Tools</h3>
           <div className="space-y-2">
+            <button 
+              className="w-full flex items-center px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+              onClick={handleAddText}
+            >
+              <Type className="w-4 h-4 mr-2" />
+              Add Text
+            </button>
+
             <input
               type="file"
               accept="image/*"
@@ -63,7 +60,6 @@ export function LeftSidebar() {
           </div>
         </div>
 
-        {/* Shapes */}
         <div>
           <h3 className="font-semibold mb-3 text-gray-900">Shapes</h3>
           <div className="grid grid-cols-2 gap-2">
@@ -78,15 +74,20 @@ export function LeftSidebar() {
           </div>
         </div>
 
-        {/* Export */}
         <div>
           <h3 className="font-semibold mb-3 text-gray-900">Export</h3>
           <div className="space-y-2">
-            <button className="w-full flex items-center px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
+            <button 
+              onClick={() => handleExport('png')}
+              className="w-full flex items-center px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
               <Download className="w-4 h-4 mr-2" />
               Export PNG
             </button>
-            <button className="w-full flex items-center px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
+            <button 
+              onClick={() => handleExport('jpg')}
+              className="w-full flex items-center px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
               <Download className="w-4 h-4 mr-2" />
               Export JPG
             </button>
