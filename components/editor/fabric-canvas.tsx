@@ -1,3 +1,4 @@
+// components/editor/fabric-canvas.tsx
 'use client'
 
 import { useEffect, useRef } from 'react'
@@ -9,7 +10,8 @@ export default function FabricCanvas() {
 
   useEffect(() => {
     const initializeFabric = async () => {
-      const fabric = (await import('fabric')).fabric
+      const fabricModule = await import('fabric')
+      const fabric = fabricModule.fabric
       
       if (canvasRef.current) {
         const canvas = new fabric.Canvas(canvasRef.current, {
