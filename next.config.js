@@ -1,12 +1,10 @@
+// next.config.js
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
   images: {
-    domains: ['localhost', 'your-project.supabase.co'],
+    domains: ['localhost'],
     unoptimized: true
-  },
-  experimental: {
-    serverComponentsExternalPackages: ['fabric']
   },
   async headers() {
     return [
