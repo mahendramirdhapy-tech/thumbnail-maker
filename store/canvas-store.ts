@@ -1,3 +1,4 @@
+// store/canvas-store.ts
 import { create } from 'zustand'
 
 interface CanvasState {
@@ -45,11 +46,13 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     }
   },
 
-  addText: (text) => {
+  addText: async (text: string) => {
     const { canvas } = get()
     if (!canvas) return
 
-    const fabric = require('fabric').fabric
+    const fabricModule = await import('fabric')
+    const fabric = fabricModule.fabric
+    
     const textObj = new fabric.Text(text, {
       left: 100,
       top: 100,
@@ -63,11 +66,13 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     canvas.renderAll()
   },
 
-  addImage: (url) => {
+  addImage: async (url: string) => {
     const { canvas } = get()
     if (!canvas) return
 
-    const fabric = require('fabric').fabric
+    const fabricModule = await import('fabric')
+    const fabric = fabricModule.fabric
+    
     fabric.Image.fromURL(url, (img: any) => {
       img.scaleToWidth(300)
       canvas.add(img)
@@ -76,7 +81,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     })
   },
 
-  exportCanvas: async (format) => {
+  exportCanvas: async (format: 'png' | 'jpg') => {
     const { canvas } = get()
     if (!canvas) return ''
 
