@@ -1,4 +1,3 @@
-// components/editor/fabric-canvas.tsx
 'use client'
 
 import { useEffect, useRef } from 'react'
