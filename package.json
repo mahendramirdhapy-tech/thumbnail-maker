@@ -39,5 +39,5 @@
     "typescript": "^5.0.0",
     "@types/fabric": "^5.3.5"
   }
-
+}
 }
