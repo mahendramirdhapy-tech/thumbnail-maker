@@ -1,4 +1,3 @@
-// components/editor/top-bar.tsx
 'use client'
 
 import { useCanvasStore } from '@/store/canvas-store'
